@@ -60,23 +60,23 @@
 			AM33XX_PADCONF(AM335X_PIN_MII1_RX_CLK, PIN_OUTPUT_PULLUP, MUX_MODE7)	/* gmii1_rxclk.gpio3_10 LS_BUF_EN */
 		>;
 	};
-
-	spi1_pins: pinmux_spi1_pins{
-		pinctrl-single,pins = <
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_ACLKX,  PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_31: spi1 clk out
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_FSX,    PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_29: spi1 d0 /data in (miso)
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_AXR0,   PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_30: spi1 d1 / data out (mosi)
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_AHCLKR, PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_28: spi1 cs 0 out
-		>;
+	uart2_pins: uart2_pins {
+		pinctrl-single,pins = < 
+			AM33XX_IOPAD(0x954, PIN_OUTPUT_PULLDOWN | MUX_MODE1)
+			AM33XX_IOPAD(0x950, PIN_INPUT_PULLUP | MUX_MODE1)
+			>;
 	};
-	uart1_pins: pinmux_uart1_pins {
-		pinctrl-single,pins = < 0x180 0x30 0x00 0x184 0x00 0x00 >;
+	uart1_pins: uart1_pins {
+		pinctrl-single,pins = < 
+			AM33XX_IOPAD(0x984, PIN_OUTPUT_PULLDOWN | MUX_MODE1)
+			AM33XX_IOPAD(0x980, PIN_INPUT_PULLUP | MUX_MODE1)
+			>;
 	};
-	i2c1_pins: pinmux_i2c1_pins {
+	uart4_pins: uart4_pins {
 		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)	/* p9.18.i2c1_sda */
-			AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)	/* P9.17.i2c1_scl */
-		>;
+			AM33XX_IOPAD(0x870, PIN_INPUT_PULLUP | MUX_MODE6)
+			AM33XX_IOPAD(0x874, PIN_OUTPUT_PULLDOWN | MUX_MODE6)
+			>;
 	};
 };
 
@@ -124,39 +124,75 @@
 		gpios = <10 GPIO_ACTIVE_HIGH>;
 		output-high;
 		line-name = "LS_BUF_EN";
-		};
 	};
-
-&spi1 {
-	status="okay";
+};
+&uart2 {
+	compatible = "ti,am3352-uart", "ti,omap3-uart"; //This is used when identifying a compatible device driver
+	status = "okay"; ///Setting the status to "okay" enables the device
+    //This is the name that corresponds to the pin control mode on the line below it
 	pinctrl-names = "default";
-	pinctrl-0 = <&spi1_pins>;
-	};
+    //This last entry binds the UART2 device to the pin control node defined above
+	pinctrl-0 = <&uart2_pins>;
+};
+
+&uart4 {
+	compatible = "ti,am3352-uart", "ti,omap3-uart";
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart4_pins>;
+};
 
 &uart1 {
-	status="okay";
+	compatible = "serial";
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart1_pins>;
-	};
+};
 
-&spi1 {
- 	flash_card@0 {
-		reg = <0>;
-		compatible = "spidev";
-		spi-max-frequency = <48000000>;
-		spi-cpol;
-		spi-cpha;
-		};
-	};
+/*
+P9_24 {
+	gpio = <0x37 0xf 0x0>;
+	input;
+	dir-changeable;
+	gpio-name = "P9_24";
+};
 
-&i2c1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c1_pins>;
+P9_24_pinmux {
+	pinctrl-0 = <0x162>;
+	pinctrl-1 = <0x163>;
+	pinctrl-2 = <0x164>;
+	pinctrl-3 = <0x165>;
+	pinctrl-4 = <0x166>;
+	pinctrl-5 = <0x167>;
+	pinctrl-6 = <0x168>;
+	pinctrl-7 = <0x169>;
+	compatible = "bone-pinmux-helper";
 	status = "okay";
-	master@0 {
-		compatible = "ti, omap4-i2c";
-		reg = <0>;
-		clock-frequency = <400000>;
-		};
-	};
+	pinctrl-names = "default", "gpio", "gpio_pu", "gpio_pd", "uart", "can", "i2c", "pruin";
+};
+*/
 
+/*
+pinmux_P9_24_uart_pin {
+	pinctrl-single,pins = <0x184 0x30>;
+	phandle = <0x166>;
+	linux,phandle = <0x166>;
+};
+
+
+
+serial@48022000 {
+	reg = <0x48022000 0x2000>;
+	dmas = <0x2a 0x1c 0x0 0x2a 0x1d 0x0>;
+	interrupts = <0x49>;
+	pinctrl-0 = <0x166>;
+	compatible = "ti,am3352-uart", "ti,omap3-uart";
+	clock-frequency = <0x2dc6c00>;
+	status = "okay";
+	ti,hwmods = "uart2";
+	phandle = <0x92>;
+	dma-names = "tx", "rx";
+	pinctrl-names = "default";
+	linux,phandle = <0x92>;
+};
+*/

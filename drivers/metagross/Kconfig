@@ -1,0 +1,13 @@
+#
+# Helloworld driver as part of kernel source
+#
+
+ menu "Helloworld Driver"
+comment "Helloworld Driver test config"
+
+
+config HELLOWORLD
+    bool "helloworld module"
+    help
+    Helloworld kernel module integrated as part of kernel source.
+endmenu
