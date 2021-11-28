@@ -9,6 +9,7 @@ source "drivers/pci/Kconfig"
 source "drivers/pcmcia/Kconfig"
 source "drivers/rapidio/Kconfig"
 
+source "drivers/mfd/meta/Kconfig"
 
 source "drivers/base/Kconfig"
 

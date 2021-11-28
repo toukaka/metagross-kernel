@@ -1,0 +1,8 @@
+menu "Menu toumi driver"
+
+config TOUMI
+	tristate "Active module"
+	help
+	  toumi test
+
+endmenu
