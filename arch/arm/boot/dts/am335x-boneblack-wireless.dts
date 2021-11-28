@@ -70,7 +70,12 @@
 		>;
 	};
 	uart1_pins: pinmux_uart1_pins {
-		pinctrl-single,pins = < 0x180 0x30 0x00 0x184 0x00 0x00 >;
+		pinctrl-single,pins = <
+			AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
+			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+			AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT, MUX_MODE0)
+			AM33XX_PADCONF(AM335X_PIN_UART1_RTSN, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+		>;
 	};
 	i2c1_pins: pinmux_i2c1_pins {
 		pinctrl-single,pins = <
@@ -137,6 +142,11 @@
 	status="okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart1_pins>;
+		gnss{
+			compatible = "u-blox,neo-6m";
+			vcc-supply = <&vmmcsd_fixed>;
+			current-speed = <9600>;
+		};
 	};
 
 &spi1 {
