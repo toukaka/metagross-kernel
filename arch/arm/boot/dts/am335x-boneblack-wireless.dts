@@ -3,170 +3,132 @@
  * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
  */
 /dts-v1/;
-
+ 
 #include "am33xx.dtsi"
 #include "am335x-bone-common.dtsi"
 #include "am335x-boneblack-common.dtsi"
-#include <dt-bindings/interrupt-controller/irq.h>
-
 / {
-	model = "TI AM335x BeagleBone Black Wireless";
-	compatible = "ti,am335x-bone-black-wireless", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
-
-	wlan_en_reg: fixedregulator@2 {
-		compatible = "regulator-fixed";
-		regulator-name = "wlan-en-regulator";
-		regulator-min-microvolt = <1800000>;
-		regulator-max-microvolt = <1800000>;
-		startup-delay-us= <70000>;
-
-		/* WL_EN */
-		gpio = <&gpio3 9 0>;
-		enable-active-high;
-	};
+    compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+      exclusive-use =
+        /* the pin header uses */
+        "P8.13",    /* EHRPWM2B - ZONE 6 PWM */
+        "P8.19",    /* EHRPWM2A - ZONE 4 PWM */
+        "P9.14",    /* EHRPWM1A - ZONE 3 PWM */
+        "P9.16",    /* EHRPWM1B - ZONE 5 PWM */
+        "P9.21",    /* EHRPWM0A - ZONE 2 PWM */
+        "P9.22",    /* EHRPWM0B - ZONE 1 PWM */
+        /* the hardware ip uses */
+        "ehrpwm0A",
+        "ehrpwm0B",
+        "ehrpwm1A",
+        "ehrpwm1B",
+        "ehrpwm2A",
+        "ehrpwm2B";
+     
+    backlight: backlight {
+        compatible = "pwm-backlight";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pwm_bl_pins>;
+        pwms = <&ehrpwm1 0 500000 0>;
+        pwm-names = "backlight";
+        brightness-levels = <0 4 8 16 32 64 128 255>;
+        default-brightness-level = <7>; /* index to the array above */
+        power-supply = <&vmmcsd_fixed>;
+        };
 };
-
+ 
 &am33xx_pinmux {
-	bt_pins: pinmux_bt_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_MII1_TXD0, PIN_OUTPUT_PULLUP, MUX_MODE7)	/* gmii1_txd0.gpio0_28 - BT_EN */
-		>;
-	};
-
-	mmc3_pins: pinmux_mmc3_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_MII1_RXD1, PIN_INPUT_PULLUP, MUX_MODE6 ) /* (L15) gmii1_rxd1.mmc2_clk */
-			AM33XX_PADCONF(AM335X_PIN_MII1_TX_EN, PIN_INPUT_PULLUP, MUX_MODE6 ) /* (J16) gmii1_txen.mmc2_cmd */
-			AM33XX_PADCONF(AM335X_PIN_MII1_RX_DV, PIN_INPUT_PULLUP, MUX_MODE5 ) /* (J17) gmii1_rxdv.mmc2_dat0 */
-			AM33XX_PADCONF(AM335X_PIN_MII1_TXD3, PIN_INPUT_PULLUP, MUX_MODE5 ) /* (J18) gmii1_txd3.mmc2_dat1 */
-			AM33XX_PADCONF(AM335X_PIN_MII1_TXD2, PIN_INPUT_PULLUP, MUX_MODE5 ) /* (K15) gmii1_txd2.mmc2_dat2 */
-			AM33XX_PADCONF(AM335X_PIN_MII1_COL, PIN_INPUT_PULLUP, MUX_MODE5 ) /* (H16) gmii1_col.mmc2_dat3 */
-		>;
-	};
-
-	uart3_pins: pinmux_uart3_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_MII1_RXD3, PIN_INPUT_PULLUP, MUX_MODE1)	/* gmii1_rxd3.uart3_rxd */
-			AM33XX_PADCONF(AM335X_PIN_MII1_RXD2, PIN_OUTPUT_PULLDOWN, MUX_MODE1)	/* gmii1_rxd2.uart3_txd */
-			AM33XX_PADCONF(AM335X_PIN_MDIO, PIN_INPUT, MUX_MODE3)		/* mdio_data.uart3_ctsn */
-			AM33XX_PADCONF(AM335X_PIN_MDC, PIN_OUTPUT_PULLDOWN, MUX_MODE3)	/* mdio_clk.uart3_rtsn */
-		>;
-	};
-
-	wl18xx_pins: pinmux_wl18xx_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_MII1_TX_CLK, PIN_OUTPUT_PULLDOWN, MUX_MODE7)	/* gmii1_txclk.gpio3_9 WL_EN */
-			AM33XX_PADCONF(AM335X_PIN_RMII1_REF_CLK, PIN_INPUT_PULLDOWN, MUX_MODE7)	/* rmii1_refclk.gpio0_29 WL_IRQ */
-			AM33XX_PADCONF(AM335X_PIN_MII1_RX_CLK, PIN_OUTPUT_PULLUP, MUX_MODE7)	/* gmii1_rxclk.gpio3_10 LS_BUF_EN */
-		>;
-	};
-
-	spi1_pins: pinmux_spi1_pins{
-		pinctrl-single,pins = <
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_ACLKX,  PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_31: spi1 clk out
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_FSX,    PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_29: spi1 d0 /data in (miso)
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_AXR0,   PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_30: spi1 d1 / data out (mosi)
-			AM33XX_PADCONF( AM335X_PIN_MCASP0_AHCLKR, PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_28: spi1 cs 0 out
-		>;
-	};
-	uart1_pins: pinmux_uart1_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
-			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
-			AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT, MUX_MODE0)
-			AM33XX_PADCONF(AM335X_PIN_UART1_RTSN, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
-		>;
-	};
-	i2c1_pins: pinmux_i2c1_pins {
-		pinctrl-single,pins = <
-			AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)	/* p9.18.i2c1_sda */
-			AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)	/* P9.17.i2c1_scl */
-		>;
-	};
+    spi1_pins: pinmux_spi1_pins{
+        pinctrl-single,pins = <
+            AM33XX_PADCONF( AM335X_PIN_MCASP0_ACLKX,  PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_31: spi1 clk out
+            AM33XX_PADCONF( AM335X_PIN_MCASP0_FSX,    PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_29: spi1 d0 /data in (miso)
+            AM33XX_PADCONF( AM335X_PIN_MCASP0_AXR0,   PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_30: spi1 d1 / data out (mosi)
+            AM33XX_PADCONF( AM335X_PIN_MCASP0_AHCLKR, PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_28: spi1 cs 0 out
+        >;
+    };
+    uart1_pins: pinmux_uart1_pins {
+        pinctrl-single,pins = <
+            AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_UART1_RTSN, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+        >;
+    };
+    i2c1_pins: pinmux_i2c1_pins {
+        pinctrl-single,pins = <
+            AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2) /* p9.18.i2c1_sda */
+            AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)    /* P9.17.i2c1_scl */
+        >;
+    };
+    lcd_ctrl_pins: lcd_ctrl_pins {
+        pinctrl-single,pins = <
+            AM33XX_PADCONF(AM335X_PIN_GPMC_A0,  PIN_OUTPUT_PULLUP, MUX_MODE7)   /* P9_15: gpio1_16 reset, OUTPUT_PULLUP | MODE7 */
+            AM33XX_PADCONF(AM335X_PIN_GPMC_BEN1,  PIN_OUTPUT_PULLUP, MUX_MODE7) /* P9_12: gpio1_28 DC, OUTPUT_PULLUP | MODE7 */
+        >;
+    };
+ 
+    pwm_bl_pins: pwm_bl_pins {
+        pinctrl-single,pins = <
+            AM33XX_PADCONF(AM335X_PIN_GPMC_A2, PIN_OUTPUT_PULLDOWN, MUX_MODE6)  /* P9_14: ehrpwm1a, MODE6 */
+        >;
+    };
 };
-
+ 
 &mac {
-	status = "disabled";
+    status = "disabled";
 };
-
-&mmc3 {
-	dmas = <&edma_xbar 12 0 1
-		&edma_xbar 13 0 2>;
-	dma-names = "tx", "rx";
-	status = "okay";
-	vmmc-supply = <&wlan_en_reg>;
-	bus-width = <4>;
-	non-removable;
-	cap-power-off-card;
-	keep-power-in-suspend;
-	pinctrl-names = "default";
-	pinctrl-0 = <&mmc3_pins &wl18xx_pins>;
-
-	#address-cells = <1>;
-	#size-cells = <0>;
-	wlcore: wlcore@2 {
-		compatible = "ti,wl1835";
-		reg = <2>;
-		interrupt-parent = <&gpio0>;
-		interrupts = <29 IRQ_TYPE_EDGE_RISING>;
-	};
-};
-
-&uart3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart3_pins &bt_pins>;
-	status = "okay";
-
-	bluetooth {
-		compatible = "ti,wl1835-st";
-		enable-gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
-	};
-};
-
-&gpio3 {
-	ls_buf_en {
-		gpio-hog;
-		gpios = <10 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "LS_BUF_EN";
-		};
-	};
-
+ 
 &spi1 {
-	status="okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi1_pins>;
-	};
-
+    status="okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&spi1_pins>;
+};
+ 
+&spi1 {
+    lcd@0{
+        reg = <0>;
+        compatible = "fb_ili9341";
+        status="okay";
+        pinctrl-names = "default";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        pinctrl-0 = <&lcd_ctrl_pins>;
+        spi-max-frequency = <25000000>;
+        rotate = <270>;
+        bgr;
+        fps = <50>;
+        buswidth = <8>;
+        reset-gpios = <&gpio2 16 0>;
+        dc-gpios = <&gpio2 28 0>;
+        debug = <3>;
+        backlight = <&backlight>;
+        };
+    };
+ 
+&epwmss1{
+    status = "okay";
+    };
+ 
+&ehrpwm1{
+    status = "okay";
+    };
+ 
 &uart1 {
-	status="okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart1_pins>;
-		gnss{
-			compatible = "u-blox,neo-6m";
-			vcc-supply = <&vmmcsd_fixed>;
-			current-speed = <9600>;
-		};
-	};
-
-&spi1 {
- 	flash_card@0 {
-		reg = <0>;
-		compatible = "spidev";
-		spi-max-frequency = <48000000>;
-		spi-cpol;
-		spi-cpha;
-		};
-	};
-
+    status="okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart1_pins>;
+        gnss{
+            compatible = "u-blox,neo-6m";
+            vcc-supply = <&vmmcsd_fixed>;
+            current-speed = <9600>;
+        };
+    };
+ 
 &i2c1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c1_pins>;
-	status = "okay";
-	master@0 {
-		compatible = "ti, omap4-i2c";
-		reg = <0>;
-		clock-frequency = <400000>;
-		};
-	};
-
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c1_pins>;
+    status = "okay";
+    compatible = "ti, omap4-i2c";
+    reg = <0>;
+    clock-frequency = <400000>;
+    };
