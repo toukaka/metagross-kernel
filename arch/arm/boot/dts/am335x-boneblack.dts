@@ -1,169 +1,84 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
- */
 /dts-v1/;
 
 #include "am33xx.dtsi"
 #include "am335x-bone-common.dtsi"
 #include "am335x-boneblack-common.dtsi"
-
+#include <dt-bindings/interrupt-controller/irq.h>
 / {
-	model = "TI AM335x BeagleBone Black";
-	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+    model = "TI AM335x BeagleBone Black Wireless";
+    compatible = "ti,am335x-bone-black-wireless", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+      exclusive-use =
+        /* the pin header uses */
+       "P9.31", /* spi1_sclk */
+       "P9.29", /* spi1_d0 MISO */
+       "P9.30", /* spi1_d1 MOSI */
+       "P9.28", /* spi1_cs0 */
+       "P9.11", /* gpio0_30 - reset */
+       "P9.12", /* gpio1_28 - dc */
+       "P9.15", /* gpio1_16 - led */
+       "spi1";
 };
 
-&cpu0_opp_table {
-	/*
-	 * All PG 2.0 silicon may not support 1GHz but some of the early
-	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
-	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
-	 */
-	oppnitro-1000000000 {
-		opp-supported-hw = <0x06 0x0100>;
-	};
+&am33xx_pinmux {
+  spi1_pins: pinmux_spi1_pins{
+    pinctrl-single,pins = <
+      AM33XX_PADCONF( AM335X_PIN_MCASP0_ACLKX,  PIN_INPUT_PULLUP, MUX_MODE3 )  // P9_31: spi1 clk out
+      AM33XX_PADCONF( AM335X_PIN_MCASP0_FSX,    PIN_INPUT_PULLDOWN, MUX_MODE3 )  // P9_29: spi1 d0 /data in (miso)
+      AM33XX_PADCONF( AM335X_PIN_MCASP0_AXR0,   PIN_OUTPUT_PULLDOWN, MUX_MODE3 )  // P9_30: spi1 d1 / data out (mosi)
+      AM33XX_PADCONF( AM335X_PIN_MCASP0_AHCLKR, PIN_OUTPUT_PULLDOWN, MUX_MODE3 )  // P9_28: spi1 cs 0 out
+    >;
+  };
+   ehci_omap_pins: pinmux_ehci_omap_pins {
+                pinctrl-single,pins = <
+                    /* configure pins for USB1 */
+                    0x040 0x2f  /* gpmc_wait0, EHCI0 reset */
+                    0x038 0x2f  /* gpmc_advn_ale, EHCI0 vbus */
+                >;
+            }; 
 };
 
-&gpio0 {
-	gpio-line-names =
-		"[ethernet]",
-		"[ethernet]",
-		"P9_22 [spi0_sclk]",
-		"P9_21 [spi0_d0]",
-		"P9_18 [spi0_d1]",
-		"P9_17 [spi0_cs0]",
-		"[sd card]",
-		"P9_42A [ecappwm0]",
-		"P8_35 [hdmi]",
-		"P8_33 [hdmi]",
-		"P8_31 [hdmi]",
-		"P8_32 [hdmi]",
-		"P9_20 [i2c2_sda]",
-		"P9_19 [i2c2_scl]",
-		"P9_26 [uart1_rxd]",
-		"P9_24 [uart1_txd]",
-		"[ethernet]",
-		"[ethernet]",
-		"[usb]",
-		"[hdmi]",
-		"P9_41B",
-		"[ethernet]",
-		"P8_19 [ehrpwm2a]",
-		"P8_13 [ehrpwm2b]",
-		"[NC]",
-		"[NC]",
-		"P8_14",
-		"P8_17",
-		"[ethernet]",
-		"[ethernet]",
-		"P9_11 [uart4_rxd]",
-		"P9_13 [uart4_txd]";
+&spi1 {
+  status="okay";
+  pinctrl-names = "default";
+  pinctrl-0 = <&spi1_pins>;
+  #address-cells = <1>;
+  #size-cells = <0>;
+  };
+
+&spi1{
+    display@0 {
+      compatible = "ilitek,ili9341";
+      reg = <0>;
+      pinctrl-names = "default";
+      spi-max-frequency = <32000000>;
+      rotate = <90>;
+      bgr;
+      fps = <60>;
+      buswidth = <8>;
+      width = <240>;
+      height = <320>;
+      reset-gpios = <&gpio1 28 GPIO_ACTIVE_LOW>;
+      dc-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
+      led-gpios= <&gpio0 31 0>;
+      debug = <3>;
+      };
+  };
+
+
+&usb0{
+    status = "disabled";
 };
 
-&gpio1 {
-	gpio-line-names =
-		"P8_25 [emmc]",
-		"[emmc]",
-		"P8_5 [emmc]",
-		"P8_6 [emmc]",
-		"P8_23 [emmc]",
-		"P8_22 [emmc]",
-		"P8_3 [emmc]",
-		"P8_4 [emmc]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"P8_12",
-		"P8_11",
-		"P8_16",
-		"P8_15",
-		"P9_15A",
-		"P9_23",
-		"P9_14 [ehrpwm1a]",
-		"P9_16 [ehrpwm1b]",
-		"[emmc]",
-		"[usr0 led]",
-		"[usr1 led]",
-		"[usr2 led]",
-		"[usr3 led]",
-		"[hdmi]",
-		"[usb]",
-		"[hdmi audio]",
-		"P9_12",
-		"P8_26",
-		"P8_21 [emmc]",
-		"P8_20 [emmc]";
+&usb0{
+    status = "disabled";
 };
 
-&gpio2 {
-	gpio-line-names =
-		"P9_15B",
-		"P8_18",
-		"P8_7",
-		"P8_8",
-		"P8_10",
-		"P8_9",
-		"P8_45 [hdmi]",
-		"P8_46 [hdmi]",
-		"P8_43 [hdmi]",
-		"P8_44 [hdmi]",
-		"P8_41 [hdmi]",
-		"P8_42 [hdmi]",
-		"P8_39 [hdmi]",
-		"P8_40 [hdmi]",
-		"P8_37 [hdmi]",
-		"P8_38 [hdmi]",
-		"P8_36 [hdmi]",
-		"P8_34 [hdmi]",
-		"[ethernet]",
-		"[ethernet]",
-		"[ethernet]",
-		"[ethernet]",
-		"P8_27 [hdmi]",
-		"P8_29 [hdmi]",
-		"P8_28 [hdmi]",
-		"P8_30 [hdmi]",
-		"[emmc]",
-		"[emmc]",
-		"[emmc]",
-		"[emmc]",
-		"[emmc]",
-		"[emmc]";
+&usb1{
+    status = "okay";
 };
 
-&gpio3 {
-	gpio-line-names =
-		"[ethernet]",
-		"[ethernet]",
-		"[ethernet]",
-		"[ethernet]",
-		"[ethernet]",
-		"[i2c0]",
-		"[i2c0]",
-		"[emu]",
-		"[emu]",
-		"[ethernet]",
-		"[ethernet]",
-		"[NC]",
-		"[NC]",
-		"[usb]",
-		"P9_31 [spi1_sclk]",
-		"P9_29 [spi1_d0]",
-		"P9_30 [spi1_d1]",
-		"P9_28 [spi1_cs0]",
-		"P9_42B [ecappwm0]",
-		"P9_27",
-		"P9_41A",
-		"P9_25",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]",
-		"[NC]";
+&usb1_phy{
+    dr_mode = "host";
+    status = "okay";
 };
+
